@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -19,12 +17,12 @@ class ExportUtils {
         'TRUCK NO.',
         'QNT.',
         'CHALLAN QNT.',
-        'DISEL',
+        'DIESEL',
         'ADV',
         'RATE',
         'SHORT AMNT',
-        'UNLODING',
-        'FRIEIGHT',
+        'UNLOADING',
+        'FREIGHT',
         'NAME'
       ];
 

@@ -7,6 +7,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/section_header.dart';
 import '../../../../shared/providers/records_provider.dart';
 import '../../../records/presentation/screens/add_record_screen.dart';
+import '../../../records/presentation/screens/records_screen.dart';
 import '../widgets/record_list_item.dart';
 import '../widgets/stats_grid.dart';
 
@@ -44,7 +45,10 @@ class DashboardScreen extends StatelessWidget {
                         final scaffold =
                             context.findAncestorStateOfType<State>();
                         if (scaffold != null) {
-                          // navigate via shell index
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const RecordsScreen()));
                         }
                       },
                     ),
@@ -111,7 +115,7 @@ class _DashboardHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome back,',
+              'Welcome,',
               style: AppTextStyles.bodyMedium
                   .copyWith(color: AppColors.textSecondary),
             ),

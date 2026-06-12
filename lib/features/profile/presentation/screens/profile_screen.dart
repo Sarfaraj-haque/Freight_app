@@ -6,9 +6,9 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/export_utils.dart';
 import '../../../../core/utils/import_utils.dart';
 import '../../../../core/widgets/action_tile.dart';
+import '../../../../shared/models/freight_record.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/providers/records_provider.dart';
-import '../../../../shared/models/freight_record.dart';
 import '../widgets/profile_avatar.dart';
 import '../widgets/profile_stats_row.dart';
 
@@ -204,7 +204,22 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Future<void> _handleBulkImport(BuildContext context) async {
-    final records = await ImportUtils.pickAndParse();
+    final result = await ImportUtils.pickAndParse();
+
+    if (result.isCancelled) return;
+
+    if (result.error != null) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.error!),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    final records = result.records;
     if (records != null && records.isNotEmpty) {
       if (!context.mounted) return;
 
@@ -218,7 +233,7 @@ class ProfileScreen extends StatelessWidget {
               onPressed: () => Navigator.pop(ctx, false),
               child: const Text('Cancel'),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Import'),
             ),

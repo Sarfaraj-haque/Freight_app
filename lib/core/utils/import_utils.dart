@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
@@ -8,120 +8,185 @@ import 'package:uuid/uuid.dart';
 
 import '../../shared/models/freight_record.dart';
 
+class ImportResult {
+  final List<FreightRecord>? records;
+  final String? error;
+  final bool isCancelled;
+
+  ImportResult({this.records, this.error, this.isCancelled = false});
+}
+
 class ImportUtils {
-  static Future<List<FreightRecord>?> pickAndParse() async {
+  static Future<ImportResult> pickAndParse() async {
     try {
       FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['xlsx', 'xls', 'csv'],
+        allowedExtensions: ['xlsx', 'csv'],
+        withData: true,
       );
 
-      if (result != null) {
-        if (kIsWeb) {
-          final bytes = await result.files.single.readAsBytes();
-          final extension = result.files.single.extension?.toLowerCase();
-          if (extension == 'csv') {
-            return _parseCSVFromBytes(bytes);
-          } else {
-            return _parseExcelFromBytes(bytes);
-          }
-        } else {
-          final path = result.files.single.path;
-          if (path == null) return null;
-          final file = File(path);
-          final extension = result.files.single.extension?.toLowerCase();
+      if (result == null || result.files.isEmpty) {
+        return ImportResult(isCancelled: true);
+      }
 
-          if (extension == 'csv') {
-            return _parseCSV(file);
-          } else {
-            return _parseExcel(file);
-          }
+      final platformFile = result.files.first;
+      final extension = platformFile.extension?.toLowerCase();
+
+      Uint8List? bytes = platformFile.bytes;
+
+      if (bytes == null) {
+        try {
+          bytes = await platformFile.readAsBytes();
+        } catch (e) {
+          return ImportResult(
+            error:
+                'Could not read file data. Try moving the file to your Downloads folder.',
+          );
         }
       }
+
+      if (extension == 'csv') {
+        try {
+          String input;
+          try {
+            input = utf8.decode(bytes);
+          } catch (_) {
+            input = String.fromCharCodes(bytes);
+          }
+          final records = _parseCSVString(input);
+          return ImportResult(records: records);
+        } catch (e) {
+          return ImportResult(error: 'Failed to parse CSV: $e');
+        }
+      } else if (extension == 'xlsx') {
+        try {
+          final records = _parseExcelFromBytes(bytes);
+          return ImportResult(records: records);
+        } catch (e) {
+          return ImportResult(error: 'Failed to parse Excel: $e');
+        }
+      } else {
+        return ImportResult(error: 'Unsupported format: .$extension');
+      }
     } catch (e) {
-      debugPrint('Error picking or parsing file: $e');
+      return ImportResult(error: 'An unexpected error occurred: $e');
     }
-    return null;
-  }
-
-  static Future<List<FreightRecord>> _parseCSV(File file) async {
-    final input = await file.readAsString();
-    return _parseCSVString(input);
-  }
-
-  static List<FreightRecord> _parseCSVFromBytes(Uint8List bytes) {
-    final input = String.fromCharCodes(bytes);
-    return _parseCSVString(input);
   }
 
   static List<FreightRecord> _parseCSVString(String input) {
     final List<List<dynamic>> rows = Csv().decode(input);
     if (rows.isEmpty) return [];
-
-    final List<List<dynamic>> dataRows = rows.skip(1).toList();
-    return _processRows(dataRows);
-  }
-
-  static Future<List<FreightRecord>> _parseExcel(File file) async {
-    final bytes = await file.readAsBytes();
-    return _parseExcelFromBytes(bytes);
+    return _processDynamicRows(rows);
   }
 
   static List<FreightRecord> _parseExcelFromBytes(Uint8List bytes) {
     final excelDoc = Excel.decodeBytes(bytes);
-    final List<List<dynamic>> dataRows = [];
+    final List<List<dynamic>> allRows = [];
 
     for (var table in excelDoc.tables.keys) {
       final sheet = excelDoc.tables[table]!;
-      for (var i = 1; i < sheet.maxRows; i++) {
+      for (var i = 0; i < sheet.maxRows; i++) {
         final row = sheet.row(i);
-        dataRows.add(row.map((cell) => cell?.value).toList());
+        allRows.add(row.map((cell) => cell?.value).toList());
       }
-      break;
+      break; // Process only the first sheet
     }
-    return _processRows(dataRows);
+    return _processDynamicRows(allRows);
   }
 
-  static List<FreightRecord> _processRows(List<List<dynamic>> rows) {
+  static List<FreightRecord> _processDynamicRows(List<List<dynamic>> allRows) {
+    if (allRows.isEmpty) return [];
+
+    int headerRowIndex = -1;
+    Map<String, int> colMap = {};
+
+    // 1. Find the header row by searching for keywords
+    for (int i = 0; i < allRows.length; i++) {
+      final row = allRows[i];
+      final rowStr = row.map((e) => e.toString().toUpperCase()).toList();
+
+      if (rowStr.contains('DATE') || rowStr.contains('TRUCK NO.')) {
+        headerRowIndex = i;
+        for (int j = 0; j < row.length; j++) {
+          final header = row[j]?.toString().toUpperCase().trim() ?? '';
+          if (header.contains('DATE')) colMap['date'] = j;
+          if (header.contains('TRUCK NO')) colMap['truck'] = j;
+          if (header.contains('QNT') && !header.contains('CHALLAN'))
+            colMap['qty'] = j;
+          if (header.contains('CHALLAN')) colMap['challan'] = j;
+          if (header.contains('DISEL')) colMap['diesel'] = j;
+          if (header.contains('ADV')) colMap['advance'] = j;
+          if (header.contains('RATE')) colMap['rate'] = j;
+          if (header.contains('SHORT')) colMap['short'] = j;
+          if (header.contains('UNLOD')) colMap['unloading'] = j;
+          if (header.contains('NAME')) colMap['name'] = j;
+        }
+        break;
+      }
+    }
+
+    // Fallback to fixed positions if headers not found
+    if (headerRowIndex == -1) {
+      debugPrint('Header row not found, using default mapping');
+      headerRowIndex = 0; // Assume data starts from row 1
+      colMap = {
+        'date': 0,
+        'truck': 1,
+        'qty': 2,
+        'challan': 3,
+        'diesel': 4,
+        'advance': 5,
+        'rate': 6,
+        'short': 7,
+        'unloading': 8,
+        'name': 10
+      };
+    }
+
     final List<FreightRecord> records = [];
     const uuid = Uuid();
 
-    for (final row in rows) {
-      try {
-        if (row.isEmpty) continue;
-        final firstCell = row[0];
-        if (firstCell == null) continue;
+    // 2. Process data starting from the row AFTER the header
+    for (int i = headerRowIndex + 1; i < allRows.length; i++) {
+      final row = allRows[i];
+      if (row.isEmpty || row.every((cell) => cell == null)) continue;
 
+      try {
         records.add(FreightRecord(
           id: uuid.v4(),
-          date: _parseDate(firstCell),
-          truckNumber: _toString(row.length > 1 ? row[1] : ''),
-          driverName: _toString(row.length > 2 ? row[2] : ''),
-          quantity: _toDouble(row.length > 3 ? row[3] : 0),
-          challanQuantity: _toDouble(row.length > 4 ? row[4] : 0),
-          rate: _toDouble(row.length > 5 ? row[5] : 0),
-          diesel: _toDouble(row.length > 6 ? row[6] : 0),
-          advance: _toDouble(row.length > 7 ? row[7] : 0),
-          unloading: _toDouble(row.length > 8 ? row[8] : 0),
-          shortAmount: _toDouble(row.length > 9 ? row[9] : 0),
-          status: _toString(row.length > 10 ? row[10] : '').toLowerCase() ==
-                  'completed'
-              ? RecordStatus.completed
-              : RecordStatus.pending,
+          date: _parseDate(_getVal(row, colMap['date'])),
+          truckNumber: _toString(_getVal(row, colMap['truck'])),
+          quantity: _toDouble(_getVal(row, colMap['qty'])),
+          challanQuantity: _toDouble(_getVal(row, colMap['challan'])),
+          diesel: _toDouble(_getVal(row, colMap['diesel'])),
+          advance: _toDouble(_getVal(row, colMap['advance'])),
+          rate: _toDouble(_getVal(row, colMap['rate'])),
+          shortAmount: _toDouble(_getVal(row, colMap['short'])),
+          unloading: _toDouble(_getVal(row, colMap['unloading'])),
+          driverName: _toString(_getVal(row, colMap['name'])),
+          status: RecordStatus.pending,
         ));
       } catch (e) {
-        debugPrint('Error parsing row: $e');
+        debugPrint('Error parsing row $i: $e');
       }
     }
+
     return records;
+  }
+
+  static dynamic _getVal(List<dynamic> row, int? index) {
+    if (index == null || index < 0 || index >= row.length) return null;
+    return row[index];
   }
 
   static String _toString(dynamic value) {
     if (value == null) return '';
+    // Handle specific CellValue types from excel package if necessary
     if (value is CellValue) {
-      return value.toString();
+      // Depending on the version, CellValue might have a 'value' property or toString()
+      return value.toString().trim();
     }
-    return value.toString();
+    return value.toString().trim();
   }
 
   static double _toDouble(dynamic value) {
@@ -131,19 +196,39 @@ class ImportUtils {
       final str = value.toString();
       return double.tryParse(str) ?? 0.0;
     }
-    return double.tryParse(value.toString()) ?? 0.0;
+    final str = value.toString();
+    return double.tryParse(str) ?? 0.0;
   }
 
   static DateTime _parseDate(dynamic value) {
     if (value == null) return DateTime.now();
     if (value is DateTime) return value;
 
-    if (value is CellValue) {
-      final str = value.toString();
-      return DateTime.tryParse(str) ?? DateTime.now();
+    // For Excel dates which might come as double
+    if (value is num) {
+      // Excel base date is 1899-12-30
+      return DateTime(1899, 12, 30).add(Duration(days: value.toInt()));
     }
 
-    final str = value.toString();
-    return DateTime.tryParse(str) ?? DateTime.now();
+    String dateStr = value.toString();
+
+    // Try standard parsing
+    DateTime? parsed = DateTime.tryParse(dateStr);
+    if (parsed != null) return parsed;
+
+    // Custom parsing for common formats if tryParse fails
+    // e.g. 03-11-26 (DD-MM-YY)
+    try {
+      final parts = dateStr.split(RegExp(r'[-/]'));
+      if (parts.length == 3) {
+        int day = int.parse(parts[0]);
+        int month = int.parse(parts[1]);
+        int year = int.parse(parts[2]);
+        if (year < 100) year += 2000;
+        return DateTime(year, month, day);
+      }
+    } catch (_) {}
+
+    return DateTime.now();
   }
 }
