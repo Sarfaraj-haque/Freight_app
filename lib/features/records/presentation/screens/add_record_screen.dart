@@ -59,19 +59,19 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
     _truckController = TextEditingController(text: r?.truckNumber ?? '');
     _driverController = TextEditingController(text: r?.driverName ?? '');
     _qtyController =
-        TextEditingController(text: r != null ? r.quantity.toString() : '0.0');
+        TextEditingController(text: r != null ? r.quantity.toString() : '');
     _challanQtyController = TextEditingController(
-        text: r != null ? r.challanQuantity.toString() : '0.0');
-    _rateController = TextEditingController(
-        text: r != null ? r.rate.toInt().toString() : '0');
+        text: r != null ? r.challanQuantity.toString() : '');
+    _rateController =
+        TextEditingController(text: r != null ? r.rate.toInt().toString() : '');
     _dieselController = TextEditingController(
-        text: r != null ? r.diesel.toInt().toString() : '0');
+        text: r != null ? r.diesel.toInt().toString() : '');
     _advanceController = TextEditingController(
-        text: r != null ? r.advance.toInt().toString() : '0');
+        text: r != null ? r.advance.toInt().toString() : '');
     _unloadingController = TextEditingController(
-        text: r != null ? r.unloading.toInt().toString() : '0');
+        text: r != null ? r.unloading.toInt().toString() : '');
     _shortController = TextEditingController(
-        text: r != null ? r.shortAmount.toInt().toString() : '0');
+        text: r != null ? r.shortAmount.toInt().toString() : '');
     if (r != null) _status = r.status;
 
     for (final c in [

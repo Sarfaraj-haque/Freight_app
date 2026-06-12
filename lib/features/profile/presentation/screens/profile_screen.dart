@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/export_utils.dart';
+import '../../../../core/utils/import_utils.dart';
 import '../../../../core/widgets/action_tile.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/providers/records_provider.dart';
-import '../../../../core/utils/import_utils.dart';
+import '../../../../shared/models/freight_record.dart';
 import '../widgets/profile_avatar.dart';
 import '../widgets/profile_stats_row.dart';
 
@@ -77,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
                   title: 'Export Records (Excel)',
                   subtitle: '${provider.totalTrips} records available',
                   iconColor: AppColors.primary,
-                  onTap: () => _showComingSoon(context),
+                  onTap: () => _handleExport(context, provider.allRecords),
                 ),
                 const SizedBox(height: 10),
                 ActionTile(
@@ -111,29 +113,34 @@ class ProfileScreen extends StatelessWidget {
   void _showFormatGuide(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => const Padding(
-        padding: EdgeInsets.all(24),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Import Format Guide', style: AppTextStyles.headlineMedium),
-            SizedBox(height: 16),
-            _FormatRow('date', 'YYYY-MM-DD'),
-            _FormatRow('truckNumber', 'MH12AB1234'),
-            _FormatRow('driverName', 'Ramesh Kumar'),
-            _FormatRow('quantity', '10.4'),
-            _FormatRow('challanQuantity', '10.0'),
-            _FormatRow('rate', '285'),
-            _FormatRow('diesel', '123'),
-            _FormatRow('advance', '0'),
-            _FormatRow('unloading', '0'),
-            _FormatRow('shortAmount', '0'),
-            _FormatRow('status', 'pending / completed'),
-            SizedBox(height: 16),
+            const Text('Import Format Guide',
+                style: AppTextStyles.headlineMedium),
+            const SizedBox(height: 8),
+            const Text('Ensure your Excel/CSV follows this column order:',
+                style: AppTextStyles.bodySmall),
+            const SizedBox(height: 16),
+            const _FormatRow('DATE', 'YYYY-MM-DD'),
+            const _FormatRow('TRUCK NO.', 'MH12AB1234'),
+            const _FormatRow('QNT.', 'Quantity (10.4)'),
+            const _FormatRow('CHALLAN QNT.', '10.0'),
+            const _FormatRow('DISEL', 'Diesel Amount'),
+            const _FormatRow('ADV', 'Advance Amount'),
+            const _FormatRow('RATE', '285'),
+            const _FormatRow('SHORT AMNT', 'Shortage Amount'),
+            const _FormatRow('UNLODING', 'Unloading Charges'),
+            const _FormatRow('FRIEIGHT', 'Total Freight (Calculated)'),
+            const _FormatRow('NAME', 'Driver Name'),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -162,6 +169,38 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _handleExport(
+      BuildContext context, List<FreightRecord> records) async {
+    if (records.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No records to export')),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Generating Excel file...')),
+    );
+
+    final path = await ExportUtils.exportToExcel(records);
+
+    if (!context.mounted) return;
+
+    if (path != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('File exported successfully: ${path.split('/').last}'),
+          backgroundColor: AppColors.primary,
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Export cancelled or failed')),
+      );
+    }
   }
 
   Future<void> _handleBulkImport(BuildContext context) async {
