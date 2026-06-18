@@ -111,8 +111,9 @@ class ImportUtils {
           final header = row[j]?.toString().toUpperCase().trim() ?? '';
           if (header.contains('DATE')) colMap['date'] = j;
           if (header.contains('TRUCK NO')) colMap['truck'] = j;
-          if (header.contains('QNT') && !header.contains('CHALLAN'))
+          if (header.contains('QNT') && !header.contains('CHALLAN')) {
             colMap['qty'] = j;
+          }
           if (header.contains('CHALLAN')) colMap['challan'] = j;
           if (header.contains('DISEL')) colMap['diesel'] = j;
           if (header.contains('ADV')) colMap['advance'] = j;
@@ -215,7 +216,6 @@ class ImportUtils {
     // Try standard parsing
     DateTime? parsed = DateTime.tryParse(dateStr);
     if (parsed != null) return parsed;
-
 
     try {
       final parts = dateStr.split(RegExp(r'[-/]'));

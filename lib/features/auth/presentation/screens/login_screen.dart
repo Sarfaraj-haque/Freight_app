@@ -18,8 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
 
   ///Check constant/app_constants to set user and password
-  final _userIdController = TextEditingController(text: "test");
-  final _passwordController = TextEditingController(text: "Test@1234");
+  final _userIdController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isSubmitting = false;
 
@@ -89,8 +89,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
                 Consumer<AuthProvider>(
                   builder: (_, auth, __) {
-                    if (auth.errorMessage == null)
+                    if (auth.errorMessage == null) {
                       return const SizedBox.shrink();
+                    }
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Text(

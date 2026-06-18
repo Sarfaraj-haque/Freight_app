@@ -2,9 +2,9 @@ class AppConstants {
   AppConstants._();
 
   // Auth
-  static const String hardcodedUserId = 'test';
-  static const String hardcodedPassword = 'Test@1234';
-  static const String hardcodedEmail = 'abcd@gmail.com';
+  static const String hardcodedUserId = 'abhashsingh@gmail.com';
+  static const String hardcodedPassword = 'Abhash@123';
+  static const String hardcodedEmail = 'abhashsingh@gmail.com';
   static const String hardcodedRole = 'Administrator';
 
   // Storage keys
@@ -12,5 +12,5 @@ class AppConstants {
   static const String keyRecords = 'freight_records';
 
   // App info
-  static const String appName = 'FreightBook';
+  static const String appName = 'Freightify';
 }

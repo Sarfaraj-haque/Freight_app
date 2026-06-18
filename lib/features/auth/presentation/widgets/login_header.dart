@@ -29,7 +29,7 @@ class LoginHeader extends StatelessWidget {
             style: AppTextStyles.bodyLarge
                 .copyWith(color: AppColors.textSecondary)),
         const SizedBox(height: 4),
-        const Text('FreightBook', style: AppTextStyles.displayLarge),
+        const Text('Freightify', style: AppTextStyles.displayLarge),
         const SizedBox(height: 8),
         Text(
           'Sign in to manage your freight records',

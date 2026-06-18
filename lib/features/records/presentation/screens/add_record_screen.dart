@@ -234,7 +234,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 suffix: const Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 10, 12, 0),
+                  padding: EdgeInsets.fromLTRB(0, 10, 12, 0),
                   child: Text('₹/T',
                       style: TextStyle(color: AppColors.textSecondary)),
                 ),

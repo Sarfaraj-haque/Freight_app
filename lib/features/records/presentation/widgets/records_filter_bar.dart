@@ -10,10 +10,10 @@ class RecordsFilterBar extends StatelessWidget {
 
   static const _filters = [
     (RecordFilter.all, 'All'),
-    // (RecordFilter.pending, 'Pending'),
-    // (RecordFilter.completed, 'Completed'),
-    (RecordFilter.profit, 'Profit'),
-    (RecordFilter.loss, 'Loss'),
+    // (RecordFilter.profit, 'Profit'),
+    // (RecordFilter.loss, 'Loss'),
+    (RecordFilter.sortByName, 'Sort by Driver Name'),
+    (RecordFilter.sortByTruckNo, 'Sort by Truck No.'),
   ];
 
   @override

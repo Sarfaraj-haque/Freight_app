@@ -4,7 +4,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_constants.dart';
 import '../models/freight_record.dart';
 
-enum RecordFilter { all, pending, completed, profit, loss }
+enum RecordFilter {
+  all,
+  pending,
+  completed,
+  profit,
+  loss,
+  sortByName,
+  sortByTruckNo
+}
 
 class RecordsProvider extends ChangeNotifier {
   RecordsProvider() {
@@ -49,6 +57,12 @@ class RecordsProvider extends ChangeNotifier {
       case RecordFilter.loss:
         result = result.where((r) => !r.isProfit).toList();
         break;
+      case RecordFilter.sortByName:
+        result.sort((a, b) => a.driverName.compareTo(b.driverName));
+        return result; // Return early to avoid date sorting
+      case RecordFilter.sortByTruckNo:
+        result.sort((a, b) => a.truckNumber.compareTo(b.truckNumber));
+        return result; // Return early to avoid date sorting
     }
 
     result.sort((a, b) => b.date.compareTo(a.date));
