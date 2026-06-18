@@ -4,14 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../shared/models/freight_record.dart';
 import '../../../../shared/providers/records_provider.dart';
 import '../widgets/freight_calculator_banner.dart';
 import '../widgets/number_field_row.dart';
-import '../widgets/status_selector.dart';
+import '../widgets/section_label.dart';
 
 class AddRecordScreen extends StatefulWidget {
   const AddRecordScreen({super.key, this.existingRecord});
@@ -168,7 +167,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
               const SizedBox(height: 16),
               FreightCalculatorBanner(freight: _calculatedFreight),
               const SizedBox(height: 24),
-              const _SectionLabel(label: 'BASIC INFO'),
+              const SectionLabel(label: 'BASIC INFO'),
               const SizedBox(height: 12),
               AppTextField(
                 label: 'Date (YYYY-MM-DD)',
@@ -212,7 +211,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                     v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 24),
-              const _SectionLabel(label: 'QUANTITY'),
+              const SectionLabel(label: 'QUANTITY'),
               const SizedBox(height: 12),
               NumberFieldRow(
                 leftLabel: 'Quantity (Tonnes) *',
@@ -226,7 +225,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                 isDecimal: true,
               ),
               const SizedBox(height: 24),
-              const _SectionLabel(label: 'FINANCIAL DETAILS'),
+              const SectionLabel(label: 'FINANCIAL DETAILS'),
               const SizedBox(height: 12),
               AppTextField(
                 label: 'Rate (₹ per Tonne) *',
@@ -263,34 +262,16 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                 rightController: _shortController,
                 rightSuffix: '₹',
               ),
-              const SizedBox(height: 24),
-              const _SectionLabel(label: 'STATUS'),
-              const SizedBox(height: 12),
-              StatusSelector(
-                status: _status,
-                onChanged: (s) => setState(() => _status = s),
-              ),
+              // const SizedBox(height: 24),
+              // const SectionLabel(label: 'STATUS'),
+              // const SizedBox(height: 12),
+              // StatusSelector(
+              //   status: _status,
+              //   onChanged: (s) => setState(() => _status = s),
+              // ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: AppTextStyles.labelMedium.copyWith(
-        color: AppColors.textSecondary,
-        letterSpacing: 1.0,
-        fontWeight: FontWeight.w700,
-        fontSize: 11,
       ),
     );
   }

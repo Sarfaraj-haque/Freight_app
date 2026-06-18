@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freight_app/core/widgets/app_searchbar.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -17,13 +18,17 @@ class RecordsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Records')),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: _SearchBar(),
+            child: AppSearchBar(
+              hintText: 'Search by truck or driver name...',
+              onChanged: context.read<RecordsProvider>().setSearch,
+            ),
           ),
           const Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: EdgeInsets.fromLTRB(16, 12, 0, 0),
             child: RecordsFilterBar(),
           ),
           const SizedBox(height: 12),
@@ -78,34 +83,6 @@ class RecordsScreen extends StatelessWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         child: const Icon(Icons.add_rounded, size: 28),
-      ),
-    );
-  }
-}
-
-class _SearchBar extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      onChanged: context.read<RecordsProvider>().setSearch,
-      decoration: InputDecoration(
-        hintText: 'Search by truck or driver name...',
-        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textHint),
-        filled: true,
-        fillColor: AppColors.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 12),
       ),
     );
   }

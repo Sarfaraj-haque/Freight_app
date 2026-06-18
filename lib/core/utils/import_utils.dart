@@ -216,8 +216,7 @@ class ImportUtils {
     DateTime? parsed = DateTime.tryParse(dateStr);
     if (parsed != null) return parsed;
 
-    // Custom parsing for common formats if tryParse fails
-    // e.g. 03-11-26 (DD-MM-YY)
+
     try {
       final parts = dateStr.split(RegExp(r'[-/]'));
       if (parts.length == 3) {

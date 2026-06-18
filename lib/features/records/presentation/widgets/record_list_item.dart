@@ -57,7 +57,7 @@ class RecordListItem extends StatelessWidget {
                   style: AppTextStyles.bodySmall,
                 ),
               ),
-              _StatusBadge(status: record.status),
+              // _StatusBadge(status: record.status),
             ],
           ),
           const SizedBox(height: 12),
@@ -113,31 +113,31 @@ class _RecordField extends StatelessWidget {
   }
 }
 
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status});
-  final RecordStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPending = status == RecordStatus.pending;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isPending ? AppColors.errorLight : AppColors.successLight,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isPending ? AppColors.error : AppColors.success,
-          width: 1,
-        ),
-      ),
-      child: Text(
-        isPending ? 'Pending' : 'Completed',
-        style: AppTextStyles.bodySmall.copyWith(
-          color: isPending ? AppColors.error : AppColors.success,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
-        ),
-      ),
-    );
-  }
-}
+// class _StatusBadge extends StatelessWidget {
+//   const _StatusBadge({required this.status});
+//   final RecordStatus status;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     final isPending = status == RecordStatus.pending;
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+//       decoration: BoxDecoration(
+//         color: isPending ? AppColors.errorLight : AppColors.successLight,
+//         borderRadius: BorderRadius.circular(20),
+//         border: Border.all(
+//           color: isPending ? AppColors.error : AppColors.success,
+//           width: 1,
+//         ),
+//       ),
+//       child: Text(
+//         isPending ? 'Pending' : 'Completed',
+//         style: AppTextStyles.bodySmall.copyWith(
+//           color: isPending ? AppColors.error : AppColors.success,
+//           fontWeight: FontWeight.w600,
+//           fontSize: 11,
+//         ),
+//       ),
+//     );
+//   }
+// }
